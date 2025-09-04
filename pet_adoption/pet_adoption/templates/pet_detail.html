@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="pet-detail">
+    <h2>{{ pet.name }}</h2>
+    <div class="relative">
+        <img src="{{ pet.photo.url }}" alt="{{ pet.name }}">
+        {% if pet.is_adopted %}
+            <span class="absolute top-0 left-0 bg-green-500 text-white px-2 py-1 rounded-br-lg">Adopted</span>
+        {% endif %}
+    </div>
+    <p><strong>Breed:</strong> {{ pet.breed }}</p>
+    <p><strong>Age:</strong> {{ pet.age }}</p>
+    <p><strong>Type:</strong> {{ pet.get_pet_type_display }}</p>
+    <p><strong>Location:</strong> {{ pet.location }}</p>
+    <p><strong>Vaccinated:</strong> {{ pet.vaccination_status|yesno:"Yes,No" }}</p>
+    {% if user != pet.owner %}
+        {% if pet.is_adopted %}
+            <p class="text-green-600 font-semibold">This pet has been adopted.</p>
+        {% elif user.is_authenticated %}
+            <form method="post" action="{% url 'adoption:apply_adoption' pet.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn">Apply for Adoption</button>
+            </form>
+        {% else %}
+            <p>Please <a href="{% url 'accounts:login' %}">login</a> to apply for adoption.</p>
+        {% endif %}
+    {% else %}
+        <p>You are the owner of this pet.</p>
+    {% endif %}
+</div>
+<style>
+    .pet-detail {
+        max-width: 600px;
+        margin: 0 auto;
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .pet-detail img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 5px;
+    }
+    .btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .btn:hover {
+        background-color: #45a049;
+    }
+    .pet-detail a {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+    .pet-detail a:hover {
+        text-decoration: underline;
+    }
+    .relative {
+        position: relative;
+    }
+</style>
+<script>
+    document.querySelector('.btn')?.addEventListener('click', () => {
+        console.log('Applying for adoption...');
+    });
+</script>
+{% endblock %}

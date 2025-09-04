@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-container">
+    <h2>Login</h2>
+    <form method="post">
+        {% csrf_token %}
+        <p><label>Username: <input type="text" name="username"></label></p>
+        <p><label>Password: <input type="password" name="password"></label></p>
+        <button type="submit" class="btn">Login</button>
+        <p><a href="{% url 'accounts:forgot_password' %}">Forgot Password?</a></p>
+    </form>
+</div>
+<style>
+    .form-container {
+        max-width: 400px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .btn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .btn:hover {
+        background-color: #45a049;
+    }
+    .form-container a {
+        color: #4CAF50;
+        text-decoration: none;
+    }
+    .form-container a:hover {
+        text-decoration: underline;
+    }
+</style>
+<script>
+    document.querySelector('form').addEventListener('submit', () => {
+        console.log('Logging in...');
+    });
+    document.querySelector('a').addEventListener('click', () => {
+        console.log('Navigating to forgot password...');
+    });
+</script>
+{% endblock %}

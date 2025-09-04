@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .banner {
+        background: linear-gradient(135deg, #4f46e5, #14b8a6);
+        clip-path: polygon(0 0, 100% 0, 100% 85%, 0 100%);
+        padding: 4rem 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .banner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        z-index: 0;
+    }
+    .banner-content {
+        position: relative;
+        z-index: 1;
+        animation: fadeIn 1s ease-out;
+    }
+    .banner h2 {
+        background: linear-gradient(to right, #ffffff, #e0f2fe);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    .banner p {
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .home {
+        padding: 3rem 1rem;
+        background: linear-gradient(to bottom, rgba(245, 245, 245, 0.5), rgba(204, 251, 241, 0.5));
+    }
+    .self-praise {
+        max-width: 48rem;
+        margin: 0 auto 2rem;
+        color: #1f2937;
+        position: relative;
+        padding: 1.5rem;
+        border-left: 4px solid #14b8a6;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        animation: fadeInUp 0.8s ease-out;
+    }
+    .browse-btn {
+        display: inline-block;
+        background: linear-gradient(to right, #4f46e5, #14b8a6);
+        padding: 0.75rem 1.5rem;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        color: white;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .browse-btn:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        background: linear-gradient(to right, #4338ca, #0d9488);
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+<div class="banner text-white text-center">
+    <div class="banner-content">
+        <h2 class="text-4xl md:text-5xl font-extrabold tracking-tight">Welcome to the Pet Adoption Portal</h2>
+        <p class="mt-4 text-lg md:text-xl font-medium">Discover your perfect furry companion and start a lifelong journey of love.</p>
+    </div>
+</div>
+<div class="home text-center">
+    <p class="self-praise text-lg md:text-xl">
+        At the Pet Adoption Portal, we pride ourselves on connecting loving homes with adorable pets in need. Our platform is designed with care, offering a seamless and heartwarming experience to help you find your ideal companion. With a commitment to animal welfare and user satisfaction, we’re here to make every adoption a story of joy and companionship.
+    </p>
+    <a href="{% url 'adoption:pet_list' %}" class="browse-btn">Browse Pets</a>
+</div>
+<script>
+    document.querySelector('.browse-btn').addEventListener('click', () => {
+        console.log('Browsing pets...');
+    });
+</script>
+{% endblock %}
+
+
+

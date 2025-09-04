@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="min-h-screen bg-gray-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-3xl font-bold text-center text-gray-900 mb-6">Create Your Account</h2>
+        <form method="post" id="registerForm" class="space-y-6">
+            {% csrf_token %}
+            {% if form.errors %}
+                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                    <p class="font-medium">Please correct the errors below:</p>
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+            <div>
+                <label for="{{ form.username.id_for_label }}" class="block text-sm font-medium text-gray-700">Username</label>
+                <input type="text" name="{{ form.username.name }}" id="{{ form.username.id_for_label }}" value="{{ form.username.value|default:'' }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+            </div>
+            <div>
+                <label for="{{ form.email.id_for_label }}" class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" name="{{ form.email.name }}" id="{{ form.email.id_for_label }}" value="{{ form.email.value|default:'' }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+            </div>
+            <div>
+                <label for="{{ form.mobile_number.id_for_label }}" class="block text-sm font-medium text-gray-700">Mobile Number</label>
+                <input type="text" name="{{ form.mobile_number.name }}" id="{{ form.mobile_number.id_for_label }}" value="{{ form.mobile_number.value|default:'' }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+            </div>
+            <div>
+                <label for="{{ form.password1.id_for_label }}" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" name="{{ form.password1.name }}" id="{{ form.password1.id_for_label }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+            </div>
+            <div>
+                <label for="{{ form.password2.id_for_label }}" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                <input type="password" name="{{ form.password2.name }}" id="{{ form.password2.id_for_label }}" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500" required>
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Register</button>
+            <p class="text-center text-sm text-gray-600">
+                Already have an account? <a href="{% url 'accounts:login' %}" class="text-indigo-600 hover:text-indigo-800">Log in</a>
+            </p>
+            <p class="text-center text-sm text-gray-600">
+                <a href="{% url 'accounts:forgot_password' %}" class="text-indigo-600 hover:text-indigo-800">Forgot Password?</a>
+            </p>
+        </form>
+    </div>
+</div>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+    document.getElementById('registerForm').addEventListener('submit', (e) => {
+        console.log('Registering user...');
+        const password1 = document.getElementById('{{ form.password1.id_for_label }}').value;
+        const password2 = document.getElementById('{{ form.password2.id_for_label }}').value;
+        const mobileNumber = document.getElementById('{{ form.mobile_number.id_for_label }}').value;
+        const mobileRegex = /^[0-9+\-]{10,15}$/;
+        if (password1 !== password2) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+        } else if (!mobileRegex.test(mobileNumber)) {
+            e.preventDefault();
+            alert('Please enter a valid mobile number (10-15 characters, digits, +, or - only).');
+        }
+    });
+</script>
+{% endblock %}

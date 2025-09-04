@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Pet Adoption Portal{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            transform: translateY(-2px);
+        }
+        .mobile-menu-slide {
+            transition: all 0.3s ease;
+            transform: translateX(-100%);
+        }
+        .mobile-menu-slide.open {
+            transform: translateX(0);
+        }
+        {% comment %} body {
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        } {% endcomment %}
+        main {
+            flex: 1 0 auto;
+        }
+        footer {
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-teal-50 font-sans leading-relaxed">
+    <header class="bg-gradient-to-r from-indigo-700 to-teal-500 text-white shadow-lg">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-5">
+                <div class="text-3xl font-extrabold tracking-tight">
+                    <a href="{% url 'adoption:home' %}" class="hover:text-teal-100 transition-colors duration-300">Pet Adoption Portal</a>
+                </div>
+                <div class="hidden md:flex space-x-8">
+                    <a href="{% url 'adoption:home' %}" class="nav-link hover:text-teal-100 text-lg font-medium">Home</a>
+                    <a href="{% url 'adoption:pet_list' %}" class="nav-link hover:text-teal-100 text-lg font-medium">Pets</a>
+                    <a href="{% url 'adoption:success_stories' %}" class="nav-link hover:text-teal-100 text-lg font-medium">Success Stories</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'adoption:dashboard' %}" class="nav-link hover:text-teal-100 text-lg font-medium">Dashboard</a>
+                        <a href="{% url 'adoption:pet_form' %}" class="nav-link hover:text-teal-100 text-lg font-medium">Add Pet</a>
+                        <a href="{% url 'accounts:logout' %}" class="nav-link hover:text-teal-100 text-lg font-medium">Logout</a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="nav-link hover:text-teal-100 text-lg font-medium">Login</a>
+                        <a href="{% url 'accounts:register' %}" class="nav-link hover:text-teal-100 text-lg font-medium">Register</a>
+                    {% endif %}
+                </div>
+                <div class="md:hidden">
+                    <button id="menu-toggle" class="focus:outline-none">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="mobile-menu" class="hidden md:hidden bg-indigo-800 mobile-menu-slide">
+                <div class="flex flex-col space-y-3 px-6 py-6">
+                    <a href="{% url 'adoption:home' %}" class="hover:text-teal-100 text-lg font-medium transition-colors duration-300">Home</a>
+                    <a href="{% url 'adoption:pet_list' %}" class="hover:text-teal-100 text-lg font-medium transition-colors duration-300">Pets</a>
+                    <a href="{% url 'adoption:success_stories' %}" class="hover:text-teal-100 text-lg font-medium transition-colors duration-300">Success Stories</a>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'adoption:dashboard' %}" class="hover:text-teal-100 text-lg font-medium transition-colors duration-300">Dashboard</a>
+                        <a href="{% url 'adoption:pet_form' %}" class="hover:text-teal-100 text-lg font-medium transition-colors duration-300">Add Pet</a>
+                        <a href="{% url 'accounts:logout' %}" class="hover:text-teal-100 text-lg font-medium transition-colors duration-300">Logout</a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="hover:text-teal-100 text-lg font-medium transition-colors duration-300">Login</a>
+                        <a href="{% url 'accounts:register' %}" class="hover:text-teal-100 text-lg font-medium transition-colors duration-300">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 fade-in">
+        {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                    <div class="bg-{% if message.tags == 'success' %}teal-100 border-l-4 border-teal-500 text-teal-800{% else %}red-100 border-l-4 border-red-500 text-red-800{% endif %} p-4 rounded-lg shadow-sm fade-in" role="alert">
+                        <p>{{ message }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}
+        {% endblock %}
+    </main>
+    <footer class="bg-gradient-to-r from-indigo-700 to-teal-500 text-white text-center py-6 fade-in">
+        <p class="text-lg">&copy; 2025 Pet Adoption Portal. All rights reserved.</p>
+    </footer>
+    <script>
+        const menuToggle = document.getElementById('menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+            mobileMenu.classList.toggle('mobile-menu-slide');
+            mobileMenu.classList.toggle('open');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .dashboard {
+        padding: 2rem 1rem;
+        background: linear-gradient(to bottom, rgba(245, 245, 245, 0.5), rgba(204, 251, 241, 0.5));
+    }
+    .dashboard h2, .dashboard h3 {
+        color: #1f2937;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .pet-card, .request-card {
+        background: rgba(255, 255, 255, 0.95);
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease-out;
+        border-left: 4px solid #14b8a6;
+    }
+    .pet-card:hover, .request-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        background: #f0f9ff;
+    }
+    .btn {
+        display: inline-block;
+        background: linear-gradient(to right, #4f46e5, #14b8a6);
+        color: white;
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .btn:hover {
+        transform: scale(1.05);
+        background: linear-gradient(to right, #4338ca, #0d9488);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+    .approve-btn {
+        background: linear-gradient(to right, #22c55e, #16a34a);
+    }
+    .approve-btn:hover {
+        background: linear-gradient(to right, #16a34a, #15803d);
+    }
+    .reject-btn {
+        background: linear-gradient(to right, #ef4444, #dc2626);
+    }
+    .reject-btn:hover {
+        background: linear-gradient(to right, #dc2626, #b91c1c);
+    }
+    .empty-message {
+        color: #6b7280;
+        font-style: italic;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 0.5rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+<div class="dashboard max-w-5xl mx-auto">
+    <h2 class="text-3xl md:text-4xl font-extrabold mb-6 fade-in">Dashboard</h2>
+    <h3 class="text-2xl font-semibold mb-4 fade-in">Your Pets</h3>
+    {% for pet in owned_pets %}
+        <div class="pet-card">
+            <h4 class="text-xl font-bold text-gray-800">{{ pet.name }}</h4>
+            <p class="text-gray-600">Breed: {{ pet.breed }}</p>
+            <p class="text-gray-600">Age: {{ pet.age }}</p>
+            <a href="{% url 'adoption:messages' pet.pk %}" class="btn mt-2">View Messages</a>
+        </div>
+    {% empty %}
+        <p class="empty-message">No pets listed.</p>
+    {% endfor %}
+    <h3 class="text-2xl font-semibold mb-4 mt-8 fade-in">Your Adoption Requests</h3>
+    {% for request in adoption_requests %}
+        <div class="request-card">
+            <p class="text-gray-600">Pet: {{ request.pet.name }}</p>
+            <p class="text-gray-600">Status: {{ request.get_status_display }}</p>
+            {% if request.status == 'approved' %}
+                <a href="{% url 'adoption:messages' request.pet.pk %}" class="btn mt-2">Contact Owner</a>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p class="empty-message">No adoption requests.</p>
+    {% endfor %}
+    <h3 class="text-2xl font-semibold mb-4 mt-8 fade-in">Requests for Your Pets</h3>
+    {% for request in owner_requests %}
+        <div class="request-card">
+            <p class="text-gray-600">Pet: {{ request.pet.name }}</p>
+            <p class="text-gray-600">Adopter: {{ request.adopter.username }}</p>
+            <p class="text-gray-600">Status: {{ request.get_status_display }}</p>
+            {% if request.status == 'pending' %}
+                <form method="post" action="{% url 'adoption:approve_adoption' request.pk %}" class="inline-block mt-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn approve-btn">Approve</button>
+                </form>
+                <form method="post" action="{% url 'adoption:reject_adoption' request.pk %}" class="inline-block mt-2">
+                    {% csrf_token %}
+                    <button type="submit" class="btn reject-btn">Reject</button>
+                </form>
+            {% endif %}
+            {% if request.status == 'approved' %}
+                <a href="{% url 'adoption:messages' request.pet.pk %}" class="btn mt-2">Contact Adopter</a>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p class="empty-message">No requests for your pets.</p>
+    {% endfor %}
+</div>
+<script>
+    document.querySelectorAll('.pet-card, .request-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+            if (!e.target.classList.contains('btn') && !e.target.closest('form')) {
+                card.style.backgroundColor = '#e0f7fa';
+                card.style.transition = 'background-color 0.2s ease';
+                setTimeout(() => {
+                    card.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                }, 200);
+            }
+        });
+    });
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card click event
+            console.log(`Clicked ${btn.textContent} button`);
+        });
+    });
+</script>
+{% endblock %}

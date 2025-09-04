@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .pet-details {
+        padding: 2rem 1rem;
+        background: linear-gradient(to bottom, rgba(245, 245, 245, 0.5), rgba(204, 251, 241, 0.5));
+    }
+    .pet-details h2 {
+        color: #1f2937;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.6s ease-out;
+    }
+    .card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #14b8a6;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-bottom: 1.5rem;
+    }
+    .table th, .table td {
+        padding: 1rem;
+        text-align: left;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .table th {
+        background: linear-gradient(to right, #4f46e5, #14b8a6);
+        color: white;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    .table tr {
+        transition: all 0.3s ease;
+    }
+    .table tbody tr:hover {
+        background: #f0f9ff;
+        transform: translateY(-2px);
+    }
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .btn-sm {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.875rem;
+    }
+    .btn-success {
+        background: linear-gradient(to right, #22c55e, #16a34a);
+    }
+    .btn-success:hover {
+        background: linear-gradient(to right, #16a34a, #15803d);
+        transform: scale(1.05);
+    }
+    .btn-danger {
+        background: linear-gradient(to right, #ef4444, #dc2626);
+    }
+    .btn-danger:hover {
+        background: linear-gradient(to right, #dc2626, #b91c1c);
+        transform: scale(1.05);
+    }
+    .btn-secondary {
+        background: linear-gradient(to right, #6b7280, #4b5563);
+    }
+    .btn-secondary:hover {
+        background: linear-gradient(to right, #4b5563, #374151);
+        transform: scale(1.05);
+    }
+    .text-muted {
+        color: #6b7280;
+        font-style: italic;
+    }
+    .d-inline {
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+<div class="pet-details max-w-5xl mx-auto">
+    <h2 class="text-3xl md:text-4xl font-extrabold mb-6">{{ pet.name }}</h2>
+    <div class="card">
+        <div class="card-body">
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th>Species</th>
+                        <td>{{ pet.species }}</td>
+                    </tr>
+                    <tr>
+                        <th>Breed</th>
+                        <td>{{ pet.breed }}</td>
+                    </tr>
+                    <tr>
+                        <th>Age</th>
+                        <td>{{ pet.age }}</td>
+                    </tr>
+                    <tr>
+                        <th>Gender</th>
+                        <td>{{ pet.gender }}</td>
+                    </tr>
+                    <tr>
+                        <th>Size</th>
+                        <td>{{ pet.size }}</td>
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        <td>{{ pet.description }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>{{ pet.status }}</td>
+                    </tr>
+                    <tr>
+                        <th>Posted Date</th>
+                        <td>{{ pet.created_at|date:"F d, Y H:i" }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <a href="{% url 'adoption:dashboard' %}" class="btn btn-secondary mt-3">Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+<script>
+    document.querySelectorAll('.btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            console.log(`Clicked ${btn.textContent}`);
+        });
+    });
+    document.querySelectorAll('.table tbody tr').forEach(row => {
+        row.addEventListener('click', (e) => {
+            if (!e.target.closest('.btn')) {
+                row.style.backgroundColor = '#e0f7fa';
+                row.style.transition = 'background-color 0.2s ease';
+                setTimeout(() => {
+                    row.style.backgroundColor = 'transparent';
+                }, 200);
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,767 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="messages">
+    <h2 class="messages-title">
+        Conversation with {{ recipient.username|default:pet.name }} about {{ pet.name }}
+    </h2>
+
+    <!-- 📌 Pinned section -->
+    {% if has_pinned_messages %}
+        <div class="pinned-section" id="pinned-container">
+            <h3>📌 Pinned Messages</h3>
+            {% for message in chat_messages %}
+                {% if message.is_pinned %}
+                    <div class="message-card pinned" data-message-id="{{ message.id }}">
+                        <div class="message-header">
+                            <span class="sender">{{ message.sender.username }}</span>
+                            <span class="timestamp">{{ message.created_at|date:"F d, Y H:i" }}</span>
+                            {% if message.sender == request.user %}
+                                <div class="message-menu">
+                                    <button class="menu-btn" data-message-id="{{ message.id }}">&#8942;</button>
+                                    <div class="dropdown-menu" id="dropdown-pinned-{{ message.id }}">
+                                        <button class="dropdown-item edit-btn" data-message-id="{{ message.id }}">Edit</button>
+                                        <button class="dropdown-item pin-btn" data-message-id="{{ message.id }}">Unpin</button>
+                                        <button class="dropdown-item delete-btn" data-message-id="{{ message.id }}">Delete</button>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <p class="message-content" id="content-pinned-{{ message.id }}">
+                            {{ message.content|default:"" }}
+                            {% if message.content|slice:"-8:" == " [Edited]" %}
+                                <span class="edited-label">[Edited]</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- 💬 Message list -->
+    <div class="message-list">
+        {% for message in chat_messages %}
+            <div class="message-card {% if message.sender == request.user %}sent{% else %}received{% endif %} {% if message.is_pinned %}pinned{% endif %}" data-message-id="{{ message.id }}">
+                <div class="message-header">
+                    <span class="sender">{{ message.sender.username }}</span>
+                    <span class="timestamp">{{ message.created_at|date:"F d, Y H:i" }}</span>
+                    {% if message.sender == request.user %}
+                        <div class="message-menu">
+                            <button class="menu-btn" data-message-id="{{ message.id }}">&#8942;</button>
+                            <div class="dropdown-menu" id="dropdown-{{ message.id }}">
+                                <button class="dropdown-item edit-btn" data-message-id="{{ message.id }}">Edit</button>
+                                <button class="dropdown-item pin-btn" data-message-id="{{ message.id }}">
+                                    {% if message.is_pinned %}Unpin{% else %}Pin{% endif %}
+                                </button>
+                                <button class="dropdown-item delete-btn" data-message-id="{{ message.id }}">Delete</button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                <p class="message-content" id="content-{{ message.id }}">
+                    {{ message.content|default:"" }}
+                    {% if message.content|slice:"-8:" == " [Edited]" %}
+                        <span class="edited-label">[Edited]</span>
+                    {% endif %}
+                </p>
+                {% if message.sender == request.user %}
+                    <form class="edit-form" id="edit-form-{{ message.id }}" style="display: none;" method="post" action="{% url 'adoption:edit_message' message.id %}">
+                        {% csrf_token %}
+                        <textarea name="content" class="edit-textarea">{{ message.content|default:"" }}</textarea>
+                        <div class="edit-form-actions">
+                            <button type="submit" class="btn edit-submit">Save</button>
+                            <button type="button" class="btn cancel-edit" data-message-id="{{ message.id }}">Cancel</button>
+                        </div>
+                    </form>
+                {% endif %}
+            </div>
+        {% empty %}
+            <p class="no-messages">No messages yet. Start the conversation!</p>
+        {% endfor %}
+    </div>
+
+    <!-- ✍️ Message input -->
+    {% if can_send_messages %}
+        <form method="post" class="message-form" action="{% url 'adoption:messages' pet.id %}">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn send-message">Send</button>
+        </form>
+    {% else %}
+        <p class="info-message">
+            You cannot send messages until the adoption request is approved or you are the pet owner.
+        </p>
+    {% endif %}
+</div>
+
+<style>
+    :root {
+        --primary-color: #ff6b6b;
+        --primary-hover: #e55a5a;
+        --secondary-color: #6b7280;
+        --background-light: #f9f9f9;
+        --card-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        --border-radius: 15px;
+        --transition-speed: 0.3s;
+    }
+
+    body {
+        background: linear-gradient(135deg, #74ebd5, #acb6e5);
+        font-family: 'Segoe UI', Arial, sans-serif;
+    }
+
+    .messages {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: #ffffff;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        animation: slideIn 0.6s ease-out;
+    }
+
+    .messages-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #111827;
+        text-align: center;
+        margin-bottom: 2rem;
+        opacity: 0;
+        transform: translateY(-20px);
+        animation: fadeInDown var(--transition-speed) ease-out forwards;
+    }
+
+    .pinned-section {
+        position: sticky;
+        top: 0;
+        background: #fffbeb;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 1rem;
+        z-index: 10;
+        border-radius: var(--border-radius) var(--border-radius) 0 0;
+        max-height: 250px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: #ff8e53 #f3f4f6;
+    }
+
+    .pinned-section::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .pinned-section::-webkit-scrollbar-track {
+        background: #f3f4f6;
+        border-radius: var(--border-radius);
+    }
+
+    .pinned-section::-webkit-scrollbar-thumb {
+        background: #ff8e53;
+        border-radius: var(--border-radius);
+    }
+
+    .pinned-section h3 {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #111827;
+        margin: 0 0 1rem 0;
+    }
+
+    .message-list {
+        max-height: 600px;
+        overflow-y: auto;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        border-radius: var(--border-radius);
+        background: var(--background-light);
+        scrollbar-width: thin;
+        scrollbar-color: #ff8e53 #f3f4f6;
+    }
+
+    .message-list::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .message-list::-webkit-scrollbar-track {
+        background: #f3f4f6;
+        border-radius: var(--border-radius);
+    }
+
+    .message-list::-webkit-scrollbar-thumb {
+        background: #ff8e53;
+        border-radius: var(--border-radius);
+    }
+
+    .message-card {
+        padding: 1rem 1.25rem;
+        margin: 0.75rem 10px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--card-shadow);
+        position: relative;
+        opacity: 0;
+        transform: translateY(15px);
+        animation: fadeIn 0.4s ease-in forwards;
+        animation-delay: calc(0.1s * var(--message-index, 0));
+    }
+
+    .message-card.sent {
+        background: var(--primary-color);
+        color: #ffffff;
+        margin-left: 20%;
+        border-bottom-right-radius: 4px;
+    }
+
+    .message-card.received {
+        background: #e0e0e0;
+        color: #111827;
+        margin-right: 20%;
+        border-bottom-left-radius: 4px;
+    }
+
+    .message-card.pinned {
+        border: 2px solid #ff8e53;
+        background: #fef9c3;
+        color: #111827;
+    }
+
+    .message-card.pinned.sent {
+        background: var(--primary-color);
+    }
+
+    .message-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .sender {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: inherit;
+    }
+
+    .timestamp {
+        font-size: 0.8rem;
+        color: var(--secondary-color);
+    }
+
+    .message-menu {
+        position: relative;
+    }
+
+    .menu-btn {
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        color: var(--secondary-color);
+        cursor: pointer;
+        padding: 0.25rem 0.5rem;
+        transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
+    }
+
+    .menu-btn:hover {
+        color: var(--primary-color);
+        transform: scale(1.1);
+    }
+
+    .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        z-index: 1000;
+        min-width: 140px;
+        opacity: 0;
+        transform: translateY(-10px) scale(0.95);
+        visibility: hidden;
+        transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease, visibility var(--transition-speed);
+    }
+
+    .dropdown-menu.show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        visibility: visible;
+    }
+
+    .dropdown-item {
+        display: block;
+        width: 100%;
+        padding: 0.5rem 1rem;
+        background: none;
+        border: none;
+        text-align: left;
+        font-size: 0.9rem;
+        color: #111827;
+        cursor: pointer;
+        margin-bottom: -12px;
+        transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+    }
+
+    .dropdown-item:hover {
+        background: #f3f4f6;
+        color: var(--primary-color);
+    }
+
+    .message-content {
+        font-size: 1rem;
+        line-height: 1.6;
+        color: inherit;
+        margin: 0;
+    }
+
+    .edited-label {
+        font-size: 0.8rem;
+        color: var(--secondary-color);
+        margin-left: 0.5rem;
+        font-style: italic;
+    }
+
+    .edit-form {
+        margin-top: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .edit-form-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .edit-textarea {
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        color: #111827;
+        resize: vertical;
+        transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    }
+
+    .edit-textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+    }
+
+    .edit-submit, .cancel-edit {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+
+    .no-messages {
+        text-align: center;
+        color: var(--secondary-color);
+        font-size: 1rem;
+        font-style: italic;
+        padding: 1.5rem;
+        opacity: 0;
+        animation: fadeIn var(--transition-speed) ease-out forwards 0.2s;
+    }
+
+    .message-form {
+        display: flex;
+        gap: 0.75rem;
+        align-items: flex-end;
+        margin-top: 1.5rem;
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeInUp var(--transition-speed) ease-out forwards 0.3s;
+    }
+
+    .message-form p {
+        flex-grow: 1;
+        margin: 0;
+    }
+
+    .message-form textarea {
+        flex-grow: 1;
+        min-height: 40px;
+        height:40px;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+        resize: vertical;
+    }
+
+    .message-form textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(255, 107, 107, 0.1);
+    }
+
+    .btn {
+        background: var(--primary-color);
+        color: #ffffff;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 500;
+        cursor: pointer;
+        margin-right: 345px;
+        transition: background-color var(--transition-speed) ease, transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+    }
+
+    .btn:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+    }
+
+    .btn:active {
+        transform: translateY(0);
+        box-shadow: none;
+    }
+
+    .info-message {
+        text-align: center;
+        color: #dc2626;
+        font-size: 0.9rem;
+        padding: 0.75rem;
+        background: #fef2f2;
+        border-radius: 8px;
+        opacity: 0;
+        animation: fadeIn var(--transition-speed) ease-out forwards 0.2s;
+    }
+
+    @keyframes slideIn {
+        from { transform: translateY(60px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes fadeInDown {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(15px); }
+    }
+
+    /* Tablet screens */
+    @media (max-width: 1024px) {
+        .messages {
+            margin: 1.5rem;
+            padding: 1.5rem;
+        }
+        .messages-title {
+            font-size: 1.6rem;
+        }
+        .pinned-section {
+            padding: 0.75rem;
+        }
+        .message-list {
+            max-height: 500px;
+            padding: 0.75rem;
+        }
+        .message-card {
+            padding: 0.75rem 1rem;
+            margin: 0.5rem 5px;
+        }
+        .message-card.sent {
+            margin-left: 15%;
+        }
+        .message-card.received {
+            margin-right: 15%;
+        }
+        .sender {
+            font-size: 0.9rem;
+        }
+        .timestamp {
+            font-size: 0.75rem;
+        }
+        .message-content {
+            font-size: 0.95rem;
+        }
+        .message-form {
+            gap: 0.5rem;
+        }
+        .message-form textarea {
+            min-height: 44px;
+            font-size: 0.95rem;
+        }
+        .btn {
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+        }
+    }
+
+    /* Mobile screens */
+    @media (max-width: 640px) {
+        .messages {
+            margin: 1rem;
+            padding: 1rem;
+        }
+        .messages-title {
+            font-size: 1.4rem;
+        }
+        .pinned-section {
+            padding: 0.5rem;
+        }
+        .message-list {
+            max-height: 400px;
+            padding: 0.5rem;
+        }
+        .message-card {
+            padding: 0.6rem 0.8rem;
+            margin: 0.4rem 5px;
+        }
+        .message-card.sent {
+            margin-left: 10%;
+        }
+        .message-card.received {
+            margin-right: 10%;
+        }
+        .sender {
+            font-size: 0.85rem;
+        }
+        .timestamp {
+            font-size: 0.7rem;
+        }
+        .message-content {
+            font-size: 0.9rem;
+        }
+        .dropdown-menu {
+            min-width: 120px;
+        }
+        .dropdown-item {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.8rem;
+        }
+        .message-form textarea {
+            min-height: 40px;
+            font-size: 0.9rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+    }
+</style>
+
+<script>
+    // Scroll to the bottom of the message list
+    const messageList = document.querySelector('.message-list');
+    if (messageList) {
+        messageList.scrollTop = messageList.scrollHeight;
+    }
+
+    // CSRF helper
+    function getCSRFToken() {
+        return document.cookie
+            .split('; ')
+            .find(row => row.startsWith('csrftoken='))
+            ?.split('=')[1];
+    }
+
+    // Toggle dropdown menus with animation
+    document.querySelectorAll('.menu-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const messageId = button.getAttribute('data-message-id');
+            const dropdown = document.getElementById(`dropdown-${messageId}`) || document.getElementById(`dropdown-pinned-${messageId}`);
+            const isVisible = dropdown.classList.contains('show');
+            document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+            dropdown.classList.toggle('show', !isVisible);
+        });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('.message-menu')) {
+            document.querySelectorAll('.dropdown-menu').forEach(menu => menu.classList.remove('show'));
+        }
+    });
+
+    // Handle edit button clicks
+    document.querySelectorAll('.edit-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const messageId = button.getAttribute('data-message-id');
+            const contentElement = document.getElementById(`content-${messageId}`);
+            const editForm = document.getElementById(`edit-form-${messageId}`);
+            const dropdown = document.getElementById(`dropdown-${messageId}`) || document.getElementById(`dropdown-pinned-${messageId}`);
+            contentElement.style.display = 'none';
+            editForm.style.display = 'flex';
+            editForm.style.opacity = '0';
+            editForm.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                editForm.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                editForm.style.opacity = '1';
+                editForm.style.transform = 'translateY(0)';
+            }, 10);
+            dropdown.classList.remove('show');
+        });
+    });
+
+    // Handle cancel edit
+    document.querySelectorAll('.cancel-edit').forEach(button => {
+        button.addEventListener('click', () => {
+            const messageId = button.getAttribute('data-message-id');
+            const contentElement = document.getElementById(`content-${messageId}`);
+            const editForm = document.getElementById(`edit-form-${messageId}`);
+            editForm.style.opacity = '0';
+            editForm.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                editForm.style.display = 'none';
+                contentElement.style.display = 'block';
+            }, 300);
+        });
+    });
+
+    // Append [Edited] before submitting edit
+    document.querySelectorAll('.edit-form').forEach(form => {
+        form.addEventListener('submit', (event) => {
+            const textarea = form.querySelector('.edit-textarea');
+            if (textarea.value && !textarea.value.endsWith(' [Edited]')) {
+                textarea.value += ' [Edited]';
+            }
+            const messageId = form.id.replace('edit-form-', '');
+            const contentElement = document.getElementById(`content-${messageId}`);
+            const pinnedContentElement = document.getElementById(`content-pinned-${messageId}`);
+            if (pinnedContentElement) {
+                pinnedContentElement.textContent = textarea.value;
+                if (textarea.value.endsWith(' [Edited]')) {
+                    pinnedContentElement.innerHTML += '<span class="edited-label">[Edited]</span>';
+                }
+            }
+        });
+    });
+
+    // Handle pin/unpin with animation
+    document.querySelectorAll('.pin-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const messageId = button.getAttribute('data-message-id');
+            const pinnedContainer = document.getElementById('pinned-container');
+            const messageCard = document.querySelector(`.message-list .message-card[data-message-id="${messageId}"]`);
+            const pinnedMessageCard = document.querySelector(`#pinned-container .message-card[data-message-id="${messageId}"]`);
+
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `pin_message_id=${messageId}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const pinButtons = document.querySelectorAll(`.pin-btn[data-message-id="${messageId}"]`);
+                    pinButtons.forEach(btn => btn.textContent = data.is_pinned ? 'Unpin' : 'Pin');
+
+                    if (data.is_pinned) {
+                        const clone = messageCard.cloneNode(true);
+                        clone.querySelector('.message-content').id = `content-pinned-${messageId}`;
+                        clone.querySelector('.dropdown-menu').id = `dropdown-pinned-${messageId}`;
+                        clone.classList.add('pinned');
+                        clone.style.opacity = '0';
+                        clone.style.transform = 'translateY(15px)';
+                        pinnedContainer.appendChild(clone);
+                        messageCard.classList.add('pinned');
+                        setTimeout(() => {
+                            clone.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                            clone.style.opacity = '1';
+                            clone.style.transform = 'translateY(0)';
+                        }, 10);
+
+                        const noPinnedMessage = pinnedContainer.querySelector('.no-pinned-messages');
+                        if (noPinnedMessage) {
+                            noPinnedMessage.remove();
+                        }
+
+                        // Reattach event listeners
+                        const clonedPinButton = clone.querySelector('.pin-btn');
+                        if (clonedPinButton) {
+                            clonedPinButton.addEventListener('click', () => {
+                                document.querySelector(`.pin-btn[data-message-id="${messageId}"]`).click();
+                            });
+                        }
+                        const clonedEditButton = clone.querySelector('.edit-btn');
+                        if (clonedEditButton) {
+                            clonedEditButton.addEventListener('click', () => {
+                                document.querySelector(`.edit-btn[data-message-id="${messageId}"]`).click();
+                            });
+                        }
+                        const clonedDeleteButton = clone.querySelector('.delete-btn');
+                        if (clonedDeleteButton) {
+                            clonedDeleteButton.addEventListener('click', () => {
+                                document.querySelector(`.delete-btn[data-message-id="${messageId}"]`).click();
+                            });
+                        }
+                    } else {
+                        if (pinnedMessageCard) {
+                            pinnedMessageCard.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                            pinnedMessageCard.style.opacity = '0';
+                            pinnedMessageCard.style.transform = 'translateY(15px)';
+                            pinnedMessageCard.addEventListener('transitionend', () => pinnedMessageCard.remove(), { once: true });
+                        }
+                        messageCard.classList.remove('pinned');
+
+                        if (!pinnedContainer.querySelector('.message-card')) {
+                            const noPinnedMessage = document.createElement('p');
+                            noPinnedMessage.className = 'no-pinned-messages';
+                            noPinnedMessage.textContent = 'No pinned messages yet.';
+                            pinnedContainer.appendChild(noPinnedMessage);
+                        }
+                    }
+                }
+            })
+            .catch(err => console.error('Pin error:', err));
+        });
+    });
+
+    // Handle delete with animation
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const messageId = button.getAttribute('data-message-id');
+            if (!confirm('Are you sure you want to delete this message?')) return;
+
+            fetch(window.location.href, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `delete_message_id=${messageId}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelectorAll(`.message-card[data-message-id="${messageId}"]`).forEach(el => {
+                        el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                        el.style.opacity = '0';
+                        el.style.transform = 'translateY(15px)';
+                        el.addEventListener('transitionend', () => el.remove(), { once: true });
+                    });
+
+                    const pinnedContainer = document.getElementById('pinned-container');
+                    if (!pinnedContainer.querySelector('.message-card')) {
+                        const noPinnedMessage = document.createElement('p');
+                        noPinnedMessage.className = 'no-pinned-messages';
+                        noPinnedMessage.textContent = 'No pinned messages yet.';
+                        pinnedContainer.appendChild(noPinnedMessage);
+                    }
+                }
+            })
+            .catch(err => console.error('Delete error:', err));
+        });
+    });
+</script>
+{% endblock %}

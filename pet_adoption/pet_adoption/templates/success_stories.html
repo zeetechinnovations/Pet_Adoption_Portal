@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    .success-stories {
+        padding: 2rem 1rem;
+        background: linear-gradient(to bottom, rgba(245, 245, 245, 0.5), rgba(204, 251, 241, 0.5));
+    }
+    .success-stories h2 {
+        color: #1f2937;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.6s ease-out;
+    }
+    .story-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    .story-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #14b8a6;
+        padding: 1rem;
+        text-align: center;
+        animation: fadeInUp 0.6s ease-out;
+        transition: all 0.3s ease;
+    }
+    .story-card:hover {
+        background: #f0f9ff;
+        transform: translateY(-2px);
+    }
+    .story-card img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+    }
+    .text-muted {
+        color: #6b7280;
+        font-style: italic;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="success-stories max-w-5xl mx-auto">
+    <h2 class="text-3xl md:text-4xl font-extrabold mb-6">Adoption Success Stories</h2>
+    <div class="story-gallery">
+        {% for story in stories %}
+            <div class="story-card">
+                {% if story.pet.photo %}
+                    <img src="{{ story.pet.photo.url }}" alt="{{ story.pet.name }}">
+                {% else %}
+                    <img src="{% static 'images/default-pet.jpg' %}" alt="Default Image">
+                {% endif %}
+                <p>{{ story.story }}</p>
+                <p><strong>Pet:</strong> {{ story.pet.name }}</p>
+                <p><strong>Adopter:</strong> {{ story.adopter.username }}</p>
+            </div>
+        {% empty %}
+            <p class="text-muted">No success stories yet.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    let currentIndex = 0;
+    const cards = document.querySelectorAll('.story-card');
+    if (cards.length > 0) {
+        setInterval(() => {
+            cards.forEach(card => card.style.opacity = '0.3');
+            cards[currentIndex].style.opacity = '1';
+            currentIndex = (currentIndex + 1) % cards.length;
+        }, 3000);
+    }
+</script>
+{% endblock %}

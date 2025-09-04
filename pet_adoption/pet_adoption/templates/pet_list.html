@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% block content %}
+<style>
+    .pet-list {
+        padding: 2rem 1rem;
+        background: linear-gradient(to bottom, rgba(245, 245, 245, 0.5), rgba(204, 251, 241, 0.5));
+    }
+    .pet-list h2 {
+        color: #1f2937;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        animation: fadeIn 0.6s ease-out;
+    }
+    .pet-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    .pet-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #14b8a6;
+        padding: 1rem;
+        text-align: center;
+        animation: fadeInUp 0.6s ease-out;
+        transition: all 0.3s ease;
+    }
+    .pet-card:hover {
+        transform: translateY(-2px);
+        background: #f0f9ff;
+    }
+    .pet-card img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+    }
+    .btn {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        text-decoration: none;
+        border-radius: 0.5rem;
+        font-weight: 500;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+    .btn-success {
+        background: linear-gradient(to right, #22c55e, #16a34a);
+    }
+    .btn-success:hover {
+        background: linear-gradient(to right, #16a34a, #15803d);
+        transform: scale(1.05);
+    }
+    form {
+        margin-bottom: 1.5rem;
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+    form select, form input {
+        padding: 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    form select:focus, form input:focus {
+        outline: none;
+        border-color: #14b8a6;
+        box-shadow: 0 0 5px rgba(20, 184, 166, 0.3);
+    }
+    .relative {
+        position: relative;
+    }
+    .relative span {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: linear-gradient(to right, #22c55e, #16a34a);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-bottom-right-radius: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+    .text-muted {
+        color: #6b7280;
+        font-style: italic;
+    }
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Tablet screens (max-width: 1024px) */
+    @media (max-width: 1024px) {
+        .pet-list {
+            padding: 1.5rem 0.75rem;
+        }
+        .pet-list h2 {
+            font-size: 2rem;
+        }
+        .pet-gallery {
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        .pet-card {
+            padding: 0.75rem;
+        }
+        .pet-card h3 {
+            font-size: 1.25rem;
+        }
+        .pet-card p {
+            font-size: 0.9rem;
+        }
+        form {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.75rem;
+        }
+        form select, form input {
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .btn {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+        }
+        .relative span {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+    }
+
+    /* Mobile screens (max-width: 640px) */
+    @media (max-width: 640px) {
+        .pet-list {
+            padding: 1rem 0.5rem;
+        }
+        .pet-list h2 {
+            font-size: 1.75rem;
+        }
+        .pet-gallery {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .pet-card {
+            padding: 0.5rem;
+        }
+        .pet-card h3 {
+            font-size: 1.1rem;
+        }
+        .pet-card p {
+            font-size: 0.85rem;
+        }
+        form {
+            gap: 0.5rem;
+        }
+        form select, form input {
+            padding: 0.4rem;
+            font-size: 0.85rem;
+        }
+        .btn {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.85rem;
+        }
+        .relative span {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.75rem;
+        }
+    }
+</style>
+<div class="pet-list max-w-5xl mx-auto">
+    <h2 class="text-3xl md:text-4xl font-extrabold mb-6">Available Pets</h2>
+    <form method="get">
+        <select name="pet_type">
+            <option value="">All Types</option>
+            <option value="dog">Dog</option>
+            <option value="cat">Cat</option>
+            <option value="rabbit">Rabbit</option>
+            <option value="hamster">Hamster</option>
+            <option value="birds">Birds</option>
+            <option value="fish">Fish</option>
+            <option value="turtle">Turtle</option>
+            <option value="snake">Snake</option>
+            <option value="horse">Horse</option>
+            <option value="other">Other</option>
+        </select>
+        <input type="text" name="location" placeholder="Enter location">
+        <button type="submit" class="btn btn-success">Filter</button>
+    </form>
+    <div class="pet-gallery">
+        {% for pet in pets %}
+            <div class="pet-card">
+                <div class="relative">
+                    <img src="{{ pet.photo.url }}" alt="{{ pet.name }}">
+                    {% if pet.is_adopted %}
+                        <span>Adopted</span>
+                    {% endif %}
+                </div>
+                <h3>{{ pet.name }}</h3>
+                <p>Breed: {{ pet.breed }}</p>
+                <p>Age: {{ pet.age }}</p>
+                <a href="{% url 'adoption:pet_detail' pet.pk %}" class="btn btn-success">View Details</a>
+            </div>
+        {% empty %}
+            <p class="text-muted">No pets available.</p>
+        {% endfor %}
+    </div>
+</div>
+<script>
+    document.querySelectorAll('.pet-card').forEach(card => {
+        card.addEventListener('mouseover', () => {
+            card.style.transform = 'scale(1.05)';
+            card.style.transition = 'transform 0.3s';
+        });
+        card.addEventListener('mouseout', () => {
+            card.style.transform = 'scale(1)';
+        });
+    });
+</script>
+{% endblock %}
